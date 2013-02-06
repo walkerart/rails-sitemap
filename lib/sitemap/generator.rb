@@ -134,20 +134,16 @@ module Sitemap
       path(type) unless options[:skip_index]
       link_params = options.reject { |k, v| k == :objects }
       get_objects = lambda {
-        options[:objects] ? options[:objects].call : type.to_s.classify.constantize
+        options[:objects] ? options[:objects].call : type.to_s.classify.constantize.all
       }
       # active record
       #get_objects.call.find_each(:batch_size => Sitemap.configuration.query_batch_size) do |object|
       #  path(object, link_params)
       #end
       # mongoid
-      out = [] #avoid flatten on large array
-      get_objects.call.in_groups_of(Sitemap.configuration.query_batch_size) do |objects|
-        objects.each do |object|
-          out << path(object, link_params)
-        end
+      get_objects.call.each do |object|
+        path(object, link_params)
       end
-      out
     end
 
     # Parses the loaded data and returns the xml entries.

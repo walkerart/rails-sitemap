@@ -136,9 +136,18 @@ module Sitemap
       get_objects = lambda {
         options[:objects] ? options[:objects].call : type.to_s.classify.constantize
       }
-      get_objects.call.find_each(:batch_size => Sitemap.configuration.query_batch_size) do |object|
-        path(object, link_params)
+      # active record
+      #get_objects.call.find_each(:batch_size => Sitemap.configuration.query_batch_size) do |object|
+      #  path(object, link_params)
+      #end
+      # mongoid
+      out = [] #avoid flatten on large array
+      get_objects.call.in_groups_of(Sitemap.configuration.query_batch_size) do |objects|
+        objects.each do |object|
+          out << path(object, link_params)
+        end
       end
+      out
     end
 
     # Parses the loaded data and returns the xml entries.
